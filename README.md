@@ -62,7 +62,7 @@ ms_weighted  -> Weighted Milliseconds Spent Doing I/Os
  mmcblk0p4    179      4       0        0            0            0        0        0            0            0         0             0             0
 ```
 
-diskstats.py -l
+diskstats.py -r
 ```
 First reading: 2013-07-08 17:45:32.746584
 Current reading: 2013-07-08 17:45:54.096858
