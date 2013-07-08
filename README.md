@@ -15,7 +15,7 @@ optional arguments:
   -s SPACES, --spaces SPACES
                         Spaces between colums
   -i IGNORE_DEVS, --ignore IGNORE_DEVS
-                        Devices to ignore comma separated
+                        Devices to ignore comma separated; default=loop,ram
   -o ONLY_DEV, --only ONLY_DEV
                         Only show the specified device
   -l, --legend          Show columns legend
