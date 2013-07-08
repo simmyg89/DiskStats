@@ -33,7 +33,7 @@ class DiskStats_Param(object):
             self.last_value = int(copy.deepcopy(self.cur_value))
         self.cur_value = int(copy.deepcopy(value))
 
-        self.lenght = max([x for x in [self.first_value, self.last_value, self.cur_value] if x is not None])
+        self.lenght = max([len(str(x)) for x in [self.first_value, self.last_value, self.cur_value] if x is not None] + [self.name_lenght])
 
         return value
 
@@ -70,8 +70,8 @@ class DiskStats_DiskParams(object):
         self.__diskname = name
 
         self.__params = {
-            'n_ma': DiskStats_Param('n_ma', 'Node Major'),
-            'n_mi': DiskStats_Param('n_mi', 'Node Minor'),
+            #'n_ma': DiskStats_Param('n_ma', 'Node Major'),
+            #'n_mi': DiskStats_Param('n_mi', 'Node Minor'),
             #'dev': DiskStats_Param('dev', 'Device'),
             'reads': DiskStats_Param('reads', 'Reads Issued'),
             'rd_mrg': DiskStats_Param('rd_mrg', 'Reads Merged'),
@@ -81,14 +81,14 @@ class DiskStats_DiskParams(object):
             'wr_mrg': DiskStats_Param('wr_mrg', 'Writes Merged'),
             'wr_sectors': DiskStats_Param('wr_sectors', 'Sectors Written'),
             'ms_writing': DiskStats_Param('ms_writing', 'Milliseconds Spent Writing'),
-            'cur_ios': DiskStats_Param('cur_ios', 'I/Os currently in Progress'),
+            #'cur_ios': DiskStats_Param('cur_ios', 'I/Os currently in Progress'),
             'ms_doing_io': DiskStats_Param('ms_doing_io', 'Milliseconds Spent Doing I/Os'),
             'ms_weighted': DiskStats_Param('ms_weighted', 'Weighted Milliseconds Spent Doing I/Os'),
         }
 
         self.__params_pos = {
-            0: 'n_ma',
-            1: 'n_mi',
+            #0: 'n_ma',
+            #1: 'n_mi',
             #2: 'dev',
             3: 'reads',
             4: 'rd_mrg',
@@ -98,7 +98,7 @@ class DiskStats_DiskParams(object):
             8: 'wr_mrg',
             9: 'wr_sectors',
             10: 'ms_writing',
-            11: 'cur_ios',
+            #11: 'cur_ios',
             12: 'ms_doing_io',
             13: 'ms_weighted',
         }
@@ -172,11 +172,11 @@ class DiskStats_Disks(object):
 
     def max_param_name_lenght(self, name):
 
-        return max([self.get_disk_param_name(disk, name).get_lenght() for disk in self.__disks])
+        return max([self.__disks[disk].get_param_name(name).get_lenght() for disk in self.__disks])
 
     def max_param_position_lenght(self, position):
 
-        return max([self.get_disk_param_position(disk, position).get_lenght() for disk in self.__disks])
+        return max([self.__disks[disk].get_param_position(position).get_lenght() for disk in self.__disks])
 
     def add_disk(self, disk):
 
@@ -243,15 +243,6 @@ class DiskStats(object):
         if not isinstance(ONLY_DEVS, (list, tuple)):
             ONLY_DEVS = None
 
-        try:
-            #dsfp = open('diskstats_test', 'rb')
-            dsfp = open('/proc/diskstats', 'rb')
-            self.ds = dsfp.read().split('\n')
-            dsfp.close()
-        except IOError:
-            print 'Cannot open /proc/diskstats'
-            exit(0)
-
         self.SPACES = SPACES
         self.IGNORE_DEVS = IGNORE_DEVS
         self.ONLY_DEVS = ONLY_DEVS
@@ -261,7 +252,17 @@ class DiskStats(object):
 
     def read(self):
 
-        for disk in self.ds:
+        ds = ''
+        try:
+            #dsfp = open('diskstats_test', 'rb')
+            dsfp = open('/proc/diskstats', 'rb')
+            ds = dsfp.read().split('\n')
+            dsfp.close()
+        except IOError:
+            print 'Cannot open /proc/diskstats'
+            exit(0)
+
+        for disk in ds:
             diskdict = {}
             for p in disk.split(' '):
                 if p != '':
@@ -300,13 +301,15 @@ class DiskStats(object):
 
         self.legend()
 
-        max_dev_name = max([len(str(x)) for x in self.disks.get_disks()])
+        dev_name = 'Device'
 
-        print ' ' * (max_dev_name - len('Device')),
-        print 'Device',
+        max_dev_name = max([len(str(x)) for x in self.disks.get_disks()] + [len(dev_name)])
+
+        print ' ' * (max_dev_name - len(dev_name)),
+        print '%s' % dev_name,
         print ' ' * self.SPACES,
         for p in dp.params_list():
-            print ' ' * (dp.get_param_name(p).get_lenght() - dp.get_param_name(p).get_name_lenght()),
+            print ' ' * (self.disks.max_param_name_lenght(p) - dp.get_param_name(p).get_name_lenght()),
             print '%s' % dp.get_param_name(p).name,
             print ' ' * self.SPACES,
         print ''
@@ -316,7 +319,7 @@ class DiskStats(object):
             print '%s' % d,
             print ' ' * self.SPACES,
             for p in dp.params_list():
-                print ' ' * (dp.get_param_name(p).get_lenght() - len(str(self.disks.get_disk_param_name(d, p)))),
+                print ' ' * (self.disks.max_param_name_lenght(p) - len(str(self.disks.get_disk_param_name(d, p)))),
                 print '%s' % self.disks.get_disk_param_name(d, p),
                 print ' ' * self.SPACES,
             print ''
@@ -349,7 +352,7 @@ class DiskStats(object):
                 print '     ',
 
                 for p in dp.params_list():
-                    print ' ' * (dp.get_param_name(p).get_lenght() - dp.get_param_name(p).get_name_lenght()),
+                    print ' ' * (self.disks.max_param_name_lenght(p) - dp.get_param_name(p).get_name_lenght()),
                     print '%s' % dp.get_param_name(p).name,
                     print ' ' * self.SPACES,
                 print ''
@@ -357,7 +360,7 @@ class DiskStats(object):
                 print 'FIRST',
 
                 for p in dp.params_list():
-                    print ' ' * (dp.get_param_name(p).get_lenght() - len(str(self.disks.get_disk_first_param_name(d, p)))),
+                    print ' ' * (self.disks.max_param_name_lenght(p) - len(str(self.disks.get_disk_first_param_name(d, p)))),
                     print '%s' % self.disks.get_disk_first_param_name(d, p),
                     print ' ' * self.SPACES,
                 print ''
@@ -365,7 +368,7 @@ class DiskStats(object):
                 print 'CURR ',
 
                 for p in dp.params_list():
-                    print ' ' * (dp.get_param_name(p).get_lenght() - len(str(self.disks.get_disk_param_name(d, p)))),
+                    print ' ' * (self.disks.max_param_name_lenght(p) - len(str(self.disks.get_disk_param_name(d, p)))),
                     print '%s' % self.disks.get_disk_param_name(d, p),
                     print ' ' * self.SPACES,
                 print ''
@@ -374,8 +377,8 @@ class DiskStats(object):
 
                 for p in dp.params_list():
                     diff = self.disks.get_disk_param_name(d, p) - self.disks.get_disk_first_param_name(d, p)
-                    print ' ' * (dp.get_param_name(p).get_lenght() - len(str(diff))),
-                    print '%s' % diff,
+                    print ' ' * (self.disks.max_param_name_lenght(p) - len(str(diff))),
+                    print '\033[1;41m%s\033[1;m' % diff if diff != 0 else '%s' % diff,
                     print ' ' * self.SPACES,
                 print '\n'
 
