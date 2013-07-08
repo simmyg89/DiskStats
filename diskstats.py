@@ -5,11 +5,11 @@ import argparse
 
 class ignore_callback(argparse.Action):
     def __call__(self, parser, namespace, values, option_string=None):
-        setattr(namespace, self.dest, value.split(','))
+        setattr(namespace, self.dest, values.split(','))
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-s', '--spaces', type=int, dest='SPACES', default=0, help='Spaces between colums')
-parser.add_argument('-i', '--ignore', type=str, dest='IGNORE_DEVS', default=['loop', 'ram'], help='Devices to ignore', action=ignore_callback)
+parser.add_argument('-i', '--ignore', type=str, dest='IGNORE_DEVS', default=['loop', 'ram'], help='Devices to ignore comma separated', action=ignore_callback)
 parser.add_argument('-o', '--only', dest='ONLY_DEV', help='Only show the specified device')
 parser.add_argument('-l', '--legend', dest='LEGEND', default=False, action="store_true", help='Show columns legend')
 args = parser.parse_args()
