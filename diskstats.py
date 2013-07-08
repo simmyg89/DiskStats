@@ -26,8 +26,14 @@ LEGEND = args.__dict__.get('LEGEND')
 #print 'ONLY_DEV: %s' % ONLY_DEV
 #print 'LEGEND: %s' % LEGEND
 
-dsfp = open('/proc/diskstats', 'rb')
-ds = dsfp.read().split('\n')
+try:
+    dsfp = open('/proc/diskstats', 'rb')
+    ds = dsfp.read().split('\n')
+    dsfp.close()
+
+except IOError:
+    print 'Cannot open /proc/diskstats'
+    exit(0)
 
 header = {
     0: {'h': 'n_ma', 'l': 4, 'd': 'Node Major'},
